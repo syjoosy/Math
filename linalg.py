@@ -1,18 +1,17 @@
 import numpy as np
-import numpy.linalg as lin
+import numpy.linalg as linalg
 import itertools as it
 import matplotlib.pyplot as plt
 
-class LinOp:
+class LinAlg:
 
-  def setValues(self):
+  def ValuesSet(self):
     self.size = int(input("Введите размерность квадратной матрицы (линейного оператора):"))
     self.min = float(input("Минимальное значение элемента матрицы:"))
     self.max = float(input("Максимальное значение элемента матрицы:"))
     self.lev = float(input("Левая граница поиска корней:"))
     self.prav = float(input("Правая граница поиска корней:"))
-    self.step = float(input("Искать с шагом:"))
-
+    self.shag = float(input("Искать с шагом:"))
 
   def LinearOperator(self):
 
@@ -20,7 +19,7 @@ class LinOp:
     mSelfConj = m @ m.transpose()
 
     def getMiddle(left, right):
-        return (left + right) / 2
+      return (left + right) / 2
 
     def GetCoefficients(m):
       if m.shape[0] == m.shape[1]:
@@ -32,9 +31,9 @@ class LinOp:
           det = 0
           for coord in coords:
             minor = np.reshape([m[c[0], c[1]] for c in coord], (i, i))
-            det += lin.det(minor)
+            det += linalg.det(minor)
           coeffs.append(det * ((-1) ** (m.shape[0] - i)))
-        coeffs.append(lin.det(m))
+        coeffs.append(linalg.det(m))
         return coeffs
       else:
         raise Exception('Матрица должна быть квадратной')
@@ -42,7 +41,7 @@ class LinOp:
     coeffs = GetCoefficients(mSelfConj)
 
     def PolynominalFactory(coeffs):
-      return lambda x: np.polyval(coeffs,x)
+      return lambda x: np.polyval(coeffs, x)
 
     polynominal = PolynominalFactory(coeffs)
 
@@ -54,7 +53,7 @@ class LinOp:
       right_y = f(right_x)
       while right_x < final and len(ranges) < rootscount:
         if left_y * right_y < 0:
-          ranges.append([left_x,right_x])
+          ranges.append([left_x, right_x])
         left_y = right_y
         left_x = right_x
         right_x += lenght
@@ -76,7 +75,7 @@ class LinOp:
         mids.append(middle)
       return middle, mids
 
-    ranges = FindRootRanges(self.lev, self.prav, self.step, self.size, polynominal)
+    ranges = FindRootRanges(self.lev, self.prav, self.shag, self.size, polynominal)
     roots = []
     for interval in ranges:
       roots.append(roots_binary(interval[0], interval[1], polynominal, 1e-10)[0])
@@ -84,10 +83,12 @@ class LinOp:
     return m, ranges, roots, coeffs, self.size
 
 
-solution = LinOp()      #создаём объект класса для нахождения решения
-solution.setValues()    #вызываем метод, который проделывает вычисления
 
-matrix, ranges, roots, coeffs, size = test.LinearOperator()
+
+sol = LinAlg()      #создаём объект класса для нахождения решения
+sol.ValuesSet()    #вызываем метод, который проделывает вычисления
+
+matrix, ranges, roots, coeffs, size = sol.LinearOperator()
 
 print('Линейный оператор:', matrix, sep='\n')
 print('Диапазоны нахождения корней характеристического уравнения в пределах поиска:', ranges, sep='\n')
@@ -100,7 +101,7 @@ def charakterx(x,coeffs,size,n): #рекурсивная функция вычи
      fx = (x ** size)*coeffs[n] + charakterx(x,coeffs,size - 1, n + 1)
    return fx
 
-if len(roots) > 0:      #отрисовка
+if len(roots) > 0:
   for i in range(0,len(roots),1):
     x = np.linspace(roots[i]-5, roots[i]+5, 10000)
     y = charakterx(x,coeffs,size, 0)
@@ -110,3 +111,7 @@ if len(roots) > 0:      #отрисовка
     mask = np.abs(y) < 1e-1
     plt.scatter(x[mask], y[mask], color='black', s=40, marker='o')
     plt.show()
+
+
+
+

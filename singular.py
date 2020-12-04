@@ -8,35 +8,31 @@ def getGramMatrix(vectors):
             gram[i, j] = vectors[:, i] @ vectors[:, j]
             if i != j:
                 gram[j, i] = gram[i,j]
-
     return gram
+
 
 def getConjMatrix(fromBasis, m, toBasis):
     return la.inv(getGramMatrix(fromBasis)) @ np.transpose(m) @ getGramMatrix(toBasis)
 
+
 def getSelfConjMatix_firstBasis(fromBasis, m, toBasis):
     return getConjMatrix(fromBasis, m, toBasis) @ m
+
 
 def getSelfConjMatix_secondBasis(fromBasis, m, toBasis):
     return m @ getConjMatrix(fromBasis, m, toBasis)
 
-#функция, группирующая вектора, соответствующие ненулевым сингулярным числам, в левой части матрицы столбцов
-#и нулевым - в правой
-#необходимо для корректного приведения матрицы к диагональному виду
+
 def distributeEigOutputs(vals, vecs):
     nonZeroVals = [] #список ненулевых сингулярных чисел
     nonZeroVecs = [] #список для векторов, соответсвующих ненулевым ro
     zeroVecs = [] #список для остальных векторов
 
-    # функция np.eig возвращает собственные числа вперемешку со околонулевыми значениями и nan
-    # их вместе с сооответствующими векторами надо разбросать по разные стороны списка и матрицы соответственно
     for index in range(len(vals)): #цикл по списку сосбтвенных чисел (квадратам сингулярных)
         if np.isnan(vals[index]) or abs(vals[index]) < 1e-7: #если встречается такое "неподходящее" значение
             zeroVecs.append(vecs[:, index]) #отправляем его в соответсвующий список
-            continue #и начинаем новую итерацию
+            continue
 
-        #если число отлично от 0 и не является nan
-        #отправляем их по спискам
         nonZeroVals.append(vals[index])
         nonZeroVecs.append(vecs[:, index])
 
@@ -81,13 +77,13 @@ def getSingularSecond(fromBasis, m, toBasis):
 
     for i in range(len(distVals)):
         distVals[i] = distVals[i] ** 0.5 
-        firstVecs[:, i] = distVecs[:, i] @ m  / distVals[i]
+        firstVecs[:, i] = getConjMatrix(fromBasis, m, toBasis) @ distVecs[:, i] / distVals[i]
 
     diag = np.zeros(m.shape)
     vCount = len(distVals) 
     diag[:vCount, :vCount] = np.diag(distVals)[:,:]
-
     return distVecs, diag, firstVecs  #3 матрицы - второй сингулярный базис, диагональная матрица, первый сингулярный базис
+
 #проверка
 m = np.random.randint(-4, 4, (4, 3))
 
@@ -108,7 +104,8 @@ def getDiagonal(values, shape):
     result[:size, :size] = np.diag(values)[:,:]
     return result
 
-d2 = getDiagonal(singVals2, m.shape) #диагональная матрица на основе вывода la.svd
+d2 = getDiagonal(singVals2, m.shape)
+#диагональная матрица на основе вывода la.svd
 #порядок сингулярных значений la.svd может отличаться от порядка, который возвращает самописная функция
 
 
@@ -119,8 +116,9 @@ def getPseudoDiagonal(d):
     for i in range(count):
         if d[i,i] == 0:
             pseudo[i,i] = 1 / d[i,i]
-    
     return pseudo
+
+
 
 def getPseudoInv(v, d, u):
     return v @ d @ u.transpose()
